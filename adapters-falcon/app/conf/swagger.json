@@ -1,0 +1,814 @@
+{
+    "tags": [
+      {
+        "name": "balance",
+        "description": "Operations to query the balance of a phone number"
+      },
+      {
+        "name": "top ups",
+        "description": "Operations to create and query history of top ups of the balance of a phone number"
+      }
+    ],
+    "host": "mobile-balance:8080",
+    "securityDefinitions": {
+      "client_credentials": {
+        "type": "oauth2",
+        "flow": "application",
+        "scopes": {
+          "mobile_balance:balance:read": "Permission to read mobile balance information",
+          "mobile_balance:top_ups:read": "Permission to read top-ups history and detail information",
+          "mobile_balance:top_ups:create": "Permission to create a top-up"
+        },
+        "tokenUrl": "https://auth.baikalplatform.com/token"
+      }
+    },
+    "paths": {
+      "/phone_numbers/{phone_number}/balance": {
+        "get": {
+          "security": [
+            {
+              "client_credentials": [
+                "mobile_balance:balance:read"
+              ]
+            }
+          ],
+          "description": "Get info of monetary balance for the phone number matching the query",
+          "tags": [
+            "balance"
+          ],
+          "operationId": "getBalance",
+          "parameters": [
+            {
+              "$ref": "#/parameters/PhoneNumber"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "#/definitions/Balance"
+              },
+              "examples": {
+                "application/json": {
+                  "phone_number": "+34612345678",
+                  "amount": 26.88,
+                  "currency": "EUR",
+                  "expiration_date": "2017-01-18T00:00:00Z"
+                }
+              }
+            },
+            "400": {
+              "description": "Problem with the client request",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/InvalidArgument"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "INVALID_ARGUMENT",
+                  "message": "Client specified an invalid argument, request body o query param"
+                }
+              }
+            },
+            "403": {
+              "description": "Client does not have sufficient permission",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/PermissionDenied"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "PERMISSION_DENIED",
+                  "message": "Authenticated user has no permission to access the requested resource"
+                }
+              }
+            },
+            "404": {
+              "description": "NOT_FOUND",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/NotFound"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "NOT_FOUND",
+                  "message": "A specified resource is not found"
+                }
+              }
+            },
+            "500": {
+              "description": "Server error",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/Internal"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "INTERNAL",
+                  "message": "Server error"
+                }
+              }
+            },
+            "504": {
+              "description": "Request timeout exceeded. If it happens repeatedly, consider reducing the request complexity",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/Timeout"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "TIMEOUT",
+                  "message": "Request timeout exceeded. Try it later"
+                }
+              }
+            }
+          }
+        }
+      },
+      "/phone_numbers/{phone_number}/top_ups": {
+        "get": {
+          "security": [
+            {
+              "client_credentials": [
+                "mobile_balance:top_ups:read"
+              ]
+            }
+          ],
+          "description": "List top ups history for a phone number",
+          "tags": [
+            "top ups"
+          ],
+          "operationId": "listTopUps",
+          "parameters": [
+            {
+              "$ref": "#/parameters/PhoneNumber"
+            },
+            {
+              "$ref": "#/parameters/StartDate"
+            },
+            {
+              "$ref": "#/parameters/EndDate"
+            },
+            {
+              "$ref": "#/parameters/Status"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "#/definitions/TopUps"
+              },
+              "examples": {
+                "application/json": [
+                  {
+                    "id": "c01855bc-0413-48e9-8697-08b489e623cc",
+                    "amount": 45,
+                    "currency": "EUR",
+                    "creation_date": "2016-12-18T00:00:00Z",
+                    "status": "confirmed",
+                    "payment_reference": "q9182347yqo-03483y"
+                  },
+                  {
+                    "id": "10ff9a0e-f9f3-4508-8ae8-82aaf07ccf40",
+                    "amount": 90,
+                    "currency": "EUR",
+                    "voucher": "1XDW5678Y",
+                    "creation_date": "2017-02-23T14:22:00Z",
+                    "status": "denied",
+                    "deny_reason": "invalid voucher"
+                  },
+                  {
+                    "id": "1f25b8d3-6db3-4c64-8424-8a9c3c58d124",
+                    "amount": 57,
+                    "currency": "EUR",
+                    "creation_date": "2017-02-23T14:43:00Z",
+                    "status": "confirmed",
+                    "payment_reference": "7aieruqkjhfyds54"
+                  }
+                ]
+              }
+            },
+            "400": {
+              "description": "Problem with the client request",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/InvalidArgument"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "INVALID_ARGUMENT",
+                  "message": "Client specified an invalid argument, request body o query param"
+                }
+              }
+            },
+            "403": {
+              "description": "Client does not have sufficient permission",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/PermissionDenied"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "PERMISSION_DENIED",
+                  "message": "Authenticated user has no permission to access the requested resource"
+                }
+              }
+            },
+            "404": {
+              "description": "NOT_FOUND",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/NotFound"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "NOT_FOUND",
+                  "message": "A specified resource is not found"
+                }
+              }
+            },
+            "500": {
+              "description": "Server error",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/Internal"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "INTERNAL",
+                  "message": "Server error"
+                }
+              }
+            },
+            "504": {
+              "description": "Request timeout exceeded. If it happens repeatedly, consider reducing the request complexity",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/Timeout"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "TIMEOUT",
+                  "message": "Request timeout exceeded. Try it later"
+                }
+              }
+            }
+          }
+        },
+        "post": {
+          "security": [
+            {
+              "client_credentials": [
+                "mobile_balance:top_ups:create"
+              ]
+            }
+          ],
+          "description": "Create top up for a phone number",
+          "tags": [
+            "top ups"
+          ],
+          "operationId": "createTopUp",
+          "parameters": [
+            {
+              "$ref": "#/parameters/PhoneNumber"
+            },
+            {
+              "name": "createTopUp",
+              "in": "body",
+              "description": "Body params to create a top up",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/CreateTopUp"
+              }
+            }
+          ],
+          "responses": {
+            "201": {
+              "description": "Created",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "#/definitions/TopUp"
+              },
+              "examples": {
+                "application/json": {
+                  "id": "fd5582d5-ef7a-4fa8-be84-602793f14497",
+                  "amount": 45,
+                  "currency": "EUR",
+                  "creation_date": "2017-07-06T14:43:00Z",
+                  "payment_reference": "q9182347yqo-03483y",
+                  "status": "in_progress"
+                }
+              }
+            },
+            "400": {
+              "description": "Problem with the client request",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/InvalidArgument"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "INVALID_ARGUMENT",
+                  "message": "Client specified an invalid argument, request body o query param"
+                }
+              }
+            },
+            "403": {
+              "description": "Client does not have sufficient permission",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/PermissionDenied"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "PERMISSION_DENIED",
+                  "message": "Authenticated user has no permission to access the requested resource"
+                }
+              }
+            },
+            "404": {
+              "description": "NOT_FOUND",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/NotFound"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "NOT_FOUND",
+                  "message": "A specified resource is not found"
+                }
+              }
+            },
+            "500": {
+              "description": "Server error",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/Internal"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "INTERNAL",
+                  "message": "Server error"
+                }
+              }
+            },
+            "504": {
+              "description": "Request timeout exceeded. If it happens repeatedly, consider reducing the request complexity",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/Timeout"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "TIMEOUT",
+                  "message": "Request timeout exceeded. Try it later"
+                }
+              }
+            }
+          }
+        }
+      },
+      "/phone_numbers/{phone_number}/top_ups/{top_up_id}": {
+        "get": {
+          "security": [
+            {
+              "client_credentials": [
+                "mobile_balance:top_ups:read"
+              ]
+            }
+          ],
+          "description": "Get a specific top up for a phone_number using the top_up_id",
+          "tags": [
+            "top ups"
+          ],
+          "operationId": "getTopUp",
+          "parameters": [
+            {
+              "$ref": "#/parameters/PhoneNumber"
+            },
+            {
+              "$ref": "#/parameters/TopUpId"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "#/definitions/TopUp"
+              },
+              "examples": {
+                "application/json": {
+                  "id": "fd5582d5-ef7a-4fa8-be84-602793f14497",
+                  "amount": 45,
+                  "currency": "EUR",
+                  "creation_date": "2017-07-06T14:43:00Z",
+                  "payment_reference": "q9182347yqo-03483y",
+                  "status": "confirmed"
+                }
+              }
+            },
+            "400": {
+              "description": "Problem with the client request",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/InvalidArgument"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "INVALID_ARGUMENT",
+                  "message": "Client specified an invalid argument, request body o query param"
+                }
+              }
+            },
+            "403": {
+              "description": "Client does not have sufficient permission",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/PermissionDenied"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "PERMISSION_DENIED",
+                  "message": "Authenticated user has no permission to access the requested resource"
+                }
+              }
+            },
+            "404": {
+              "description": "NOT_FOUND",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/NotFound"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "NOT_FOUND",
+                  "message": "A specified resource is not found"
+                }
+              }
+            },
+            "500": {
+              "description": "Server error",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/Internal"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "INTERNAL",
+                  "message": "Server error"
+                }
+              }
+            },
+            "504": {
+              "description": "Request timeout exceeded. If it happens repeatedly, consider reducing the request complexity",
+              "headers": {
+                "x-correlator": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Correlation id for the different services"
+                }
+              },
+              "schema": {
+                "$ref": "https://docs.baikalplatform.com/errors/v1.0/errors.json#/definitions/Timeout"
+              },
+              "examples": {
+                "application/json": {
+                  "code": "TIMEOUT",
+                  "message": "Request timeout exceeded. Try it later"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "basePath": "/mobile_balance/v1",
+    "info": {
+      "description": "Get and manage monetary mobile balance for prepaid lines: get balance, top-up, etc.",
+      "version": "1.1.15",
+      "title": "Mobile balance API",
+      "termsOfService": "https://www.telefonica.es/es/",
+      "contact": {
+        "name": "4th Platform Team",
+        "email": "4pf@tid.es"
+      }
+    },
+    "schemes": [
+      "https"
+    ],
+    "produces": [
+      "application/json"
+    ],
+    "definitions": {
+      "Balance": {
+        "type": "object",
+        "description": "Data of the balance",
+        "required": [
+          "phone_number",
+          "amount",
+          "currency",
+          "expiration_date"
+        ],
+        "properties": {
+          "phone_number": {
+            "type": "string",
+            "description": "Phone number for which the balance information applies"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount to top up",
+            "format": "float",
+            "multipleOf": 0.01
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code in which the amount is expressed. ISO 4217"
+          },
+          "expiration_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC time when the current balance will expire"
+          }
+        }
+      },
+      "TopUp": {
+        "type": "object",
+        "description": "Top up object",
+        "required": [
+          "id",
+          "creation_date",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique id of this top-up"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Available balance",
+            "format": "float",
+            "multipleOf": 0.01
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code in which the amount is expressed. ISO 4217"
+          },
+          "creation_date": {
+            "type": "string",
+            "description": "UTC time when the top-up was requested",
+            "format": "date-time"
+          },
+          "payment_reference": {
+            "type": "string",
+            "description": "Reference to the specific payment used to deduct the amount from the user at external system."
+          },
+          "voucher": {
+            "type": "string",
+            "description": "Voucher redeemed to top up phone_number's balance. No 'amount' or 'currency' needed if you specify the 'voucher' property"
+          },
+          "status": {
+            "type": "string",
+            "description": "Status of this top-up.",
+            "enum": [
+              "confirmed",
+              "denied",
+              "in-progress"
+            ]
+          },
+          "deny_reason": {
+            "type": "string",
+            "description": "Reason to reject the top-up. Only appears when status is denied"
+          },
+          "description": {
+            "type": "string",
+            "description": "Top-up description"
+          }
+        }
+      },
+      "TopUps": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/TopUp"
+        }
+      },
+      "CreateTopUp": {
+        "properties": {
+          "amount": {
+            "type": "number",
+            "description": "Available balance",
+            "format": "float",
+            "multipleOf": 0.01
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code in which the amount is expressed. ISO 4217"
+          },
+          "voucher": {
+            "type": "string",
+            "description": "Voucher to be redeemed to top up phone_number's balance. Not amount or currency needed if voucher is present"
+          },
+          "payment_reference": {
+            "type": "string",
+            "description": "Reference to the specific payment used to deduct the amount from the user at a external system"
+          }
+        },
+        "example": {
+          "amount": 45,
+          "currency": "EUR",
+          "payment_reference": "q9182347yqo-03483y"
+        }
+      }
+    },
+    "swagger": "2.0",
+    "consumes": [
+      "application/json"
+    ],
+    "parameters": {
+      "PhoneNumber": {
+        "name": "phone_number",
+        "in": "path",
+        "required": true,
+        "type": "string",
+        "description": "Phone number for which the balance information applies"
+      },
+      "StartDate": {
+        "name": "start_date",
+        "in": "query",
+        "description": "Initial UTC for getting objects matching the query",
+        "required": false,
+        "type": "string",
+        "format": "date-time"
+      },
+      "EndDate": {
+        "name": "end_date",
+        "in": "query",
+        "description": "Final UTC for getting objects matching the query",
+        "required": false,
+        "type": "string",
+        "format": "date-time"
+      },
+      "Status": {
+        "name": "status",
+        "in": "query",
+        "description": "To search top-ups with a given status",
+        "required": false,
+        "type": "string",
+        "enum": [
+          "confirmed",
+          "denied",
+          "in-progress"
+        ]
+      },
+      "TopUpId": {
+        "name": "top_up_id",
+        "in": "path",
+        "description": "Unique identifier of top up",
+        "required": true,
+        "type": "string"
+      }
+    }
+  }
+  
